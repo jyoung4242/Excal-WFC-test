@@ -1,7 +1,8 @@
 import "./style.css";
 import { UI } from "@peasy-lib/peasy-ui";
 import { Engine, DisplayMode, TileMap, ImageSource, SpriteSheet, Camera, Vector } from "excalibur";
-import { ExcaliburWfcPlugin } from "./exWFC";
+
+//WFC level specific data
 import { rules } from "./rules";
 import { tileCoords } from "./tilemapping";
 import { weightArray } from "./weights";
