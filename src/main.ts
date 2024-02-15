@@ -77,3 +77,25 @@ game.currentScene.camera.pos = new Vector(160, 160);
 
 console.log(wfcPlugin.getJSONTiles);
 console.log(wfcPlugin.tiles);
+
+setInterval(async () => {
+  //clear out old tilemap
+  console.log(game.currentScene.tileMaps);
+  game.remove(game.currentScene.tileMaps[0]);
+
+  wfcPlugin.resetTileData();
+  await wfcPlugin.generateLevel();
+  // loop through tilemap cells
+  let tileIndex = 0;
+  //reset, regenerate
+  for (let tile of tilemap.tiles) {
+    const sprite = wfcPlugin.getTile(tileIndex); ///rlSS.getSprite(0, 0);
+    if (sprite) {
+      tile.addGraphic(sprite);
+    }
+    tileIndex++;
+  }
+
+  //add new tilemap to scene
+  game.add(tilemap);
+}, 1500);
