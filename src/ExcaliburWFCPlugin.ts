@@ -49,6 +49,7 @@ export class WaveFunctionCollapsePlugIn implements Loadable<WFCMapData> {
   bufferstate: BufferState;
   weighting: Record<string, WeightData>;
   startWithRandom: boolean = true;
+  seed: number;
 
   data: any;
   isLoaded(): boolean {
@@ -66,6 +67,7 @@ export class WaveFunctionCollapsePlugIn implements Loadable<WFCMapData> {
     this.numTiles = this.width * this.height;
     this.bufferstate = BufferState.unknown;
     options.spritesheet ? (this.image = options.spritesheet) : (this.image = null);
+    options.seed ? (this.seed = options.seed) : (this.seed = -1);
     options.seed ? (this.rnd = new Random(options.seed)) : (this.rnd = new Random(Date.now()));
     this.tiles = [];
     //create tiles entries
@@ -152,6 +154,7 @@ export class WaveFunctionCollapsePlugIn implements Loadable<WFCMapData> {
     this.rules = {};
     this.weighting = {};
     this.bufferstate = BufferState.unknown;
+    this.seed == -1 ? (this.rnd = new Random(Date.now())) : (this.rnd = new Random(this.seed));
     //create tiles entries
     for (let index = 0; index < this.numTiles; index++) {
       this.tiles.push({
@@ -189,6 +192,7 @@ export class WaveFunctionCollapsePlugIn implements Loadable<WFCMapData> {
 
   resetTileData() {
     this.tiles = [];
+    this.seed == -1 ? (this.rnd = new Random(Date.now())) : (this.rnd = new Random(this.seed));
     for (let index = 0; index < this.numTiles; index++) {
       this.tiles.push({
         index,
@@ -216,6 +220,7 @@ export class WaveFunctionCollapsePlugIn implements Loadable<WFCMapData> {
 
   resetRules() {
     this.rules = {};
+    this.seed == -1 ? (this.rnd = new Random(Date.now())) : (this.rnd = new Random(this.seed));
   }
 
   setWeight(type: string, weight: number) {
@@ -228,6 +233,7 @@ export class WaveFunctionCollapsePlugIn implements Loadable<WFCMapData> {
 
   resetWeights() {
     this.weighting = {};
+    this.seed == -1 ? (this.rnd = new Random(Date.now())) : (this.rnd = new Random(this.seed));
   }
 
   private async *_collapseNext() {
