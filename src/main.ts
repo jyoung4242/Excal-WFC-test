@@ -39,7 +39,6 @@ const game = new Engine({
   canvasElementId: "cnv", // the DOM canvas element ID, if you are providing your own
   displayMode: DisplayMode.Fixed, // the display mode
 });
-const screen = game.screen;
 
 const wfcOptions: WFCoptions = {
   levelsize: { width: 20, height: 20 },
