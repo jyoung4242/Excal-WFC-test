@@ -75,6 +75,5 @@ await game.start();
 game.add(tilemap);
 game.currentScene.camera.pos = new Vector(160, 160);
 
-setTimeout;
 console.log(wfcPlugin.getJSONTiles);
 console.log(wfcPlugin.tiles);
