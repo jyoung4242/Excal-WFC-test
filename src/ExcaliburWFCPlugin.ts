@@ -123,8 +123,11 @@ export class WaveFunctionCollapsePlugIn implements Loadable<WFCMapData> {
       try {
         ({ done } = await wfcGenerator.next());
       } catch (error) {
-        //@ts-ignore
-        console.error(error, error.payload);
+        if (error instanceof Error) {
+          console.error(error.message);
+          console.info(error.cause);
+        }
+
         done = true;
       }
     }
@@ -248,7 +251,9 @@ export class WaveFunctionCollapsePlugIn implements Loadable<WFCMapData> {
 
       if (currentTileObject.availableTiles?.length == 0) {
         let err = new Error("WFC ERROR: there are no valid tiles remaining");
-        Object.assign(err, { payload: this });
+        err.cause = {
+          classState: this,
+        };
         throw err;
       }
       let retries = currentTileObject.availableTiles?.length;
@@ -265,7 +270,6 @@ export class WaveFunctionCollapsePlugIn implements Loadable<WFCMapData> {
           });
 
           currentTileObject.type = this.rnd.pickOneWeighted(availableChoices!, this.weighting);
-          //console.log("275, current tile: ", currentTileObject.type);
 
           currentTileObject.entropy = 0;
           this._setEntropyOfSurroundingTiles(currentTileObject.index!);
@@ -307,10 +311,6 @@ export class WaveFunctionCollapsePlugIn implements Loadable<WFCMapData> {
     index % this.width == this.width - 1 ? (rightTileIndex = -1) : (rightTileIndex = index + 1);
     index % this.width == 0 ? (leftTileIndex = -1) : (leftTileIndex = index - 1);
 
-    //console.log("CHECKING SURROUNDINGS OF TILE: ", index);
-
-    //console.log(upTileIndex, rightTileIndex, leftTileIndex, downTileIndex);
-
     //get the entropies of the neighbors
     let leftTileEntropy: number | undefined = undefined,
       upTileEntropy: number | undefined = undefined,
@@ -321,14 +321,20 @@ export class WaveFunctionCollapsePlugIn implements Loadable<WFCMapData> {
       try {
         upTileEntropy = this._getEntropy(upTileIndex);
       } catch (error) {
-        throw new Error("broken level, can't get entropy of up tile");
+        if (error instanceof Error) {
+          console.error(error.message);
+          console.info(error.cause);
+        }
       }
     }
     if (downTileIndex != -1) {
       try {
         downTileEntropy = this._getEntropy(downTileIndex);
       } catch (error) {
-        throw new Error("broken level, can't get entropy of down tile");
+        if (error instanceof Error) {
+          console.error(error.message);
+          console.info(error.cause);
+        }
       }
     }
 
@@ -336,7 +342,10 @@ export class WaveFunctionCollapsePlugIn implements Loadable<WFCMapData> {
       try {
         leftTileEntropy = this._getEntropy(leftTileIndex);
       } catch (error) {
-        throw new Error("broken level, can't get entropy of left tile");
+        if (error instanceof Error) {
+          console.error(error.message);
+          console.info(error.cause);
+        }
       }
     }
 
@@ -344,7 +353,10 @@ export class WaveFunctionCollapsePlugIn implements Loadable<WFCMapData> {
       try {
         rightTileEntropy = this._getEntropy(rightTileIndex);
       } catch (error) {
-        throw new Error("broken level, can't get entropy of right tile");
+        if (error instanceof Error) {
+          console.error(error.message);
+          console.info(error.cause);
+        }
       }
     }
 
@@ -405,31 +417,61 @@ export class WaveFunctionCollapsePlugIn implements Loadable<WFCMapData> {
     let leftTileAvailableTiles: any[] = [];
     let rightTileAvailableTiles: any[] = [];
 
-    //console.log(`get entropy, index: ${index}  `, upTileIndex, downTileIndex, leftTileIndex, rightTileIndex);
-
     if (upTileIndex != -1 && this.tiles[upTileIndex].entropy == 0) {
       let uptiletype = this.tiles[upTileIndex].type;
-      //  console.log("uptile check: ", upTileIndex, uptiletype);
+      if (uptiletype == undefined) {
+        let err = new Error("invalid tile type found");
+        err.cause = {
+          index,
+          direction: "up",
+          neighborIndex: upTileIndex,
+          uptiletype,
+        };
 
-      if (uptiletype == undefined) throw new Error("invalid tile type found");
+        throw err;
+      }
       upTileAvailableTiles = [...this.rules[uptiletype].down];
-      //console.log("uptile check: ", upTileIndex, uptiletype, upTileAvailableTiles);
     }
     if (downTileIndex != -1 && this.tiles[downTileIndex].entropy == 0) {
       let downTileType = this.tiles[downTileIndex].type;
-      //console.log("downtile check: ", downTileIndex, downTileType);
-      if (downTileType == undefined) throw new Error("invalid tile type found");
+      if (downTileType == undefined) {
+        let err = new Error("invalid tile type found");
+        err.cause = {
+          index,
+          direction: "down",
+          neighborIndex: downTileIndex,
+          downTileType,
+        };
+        throw err;
+      }
       downTileAvailableTiles = [...this.rules[downTileType].up];
-      //console.log("downtile check: ", downTileIndex, downTileType, downTileAvailableTiles);
     }
     if (leftTileIndex != -1 && this.tiles[leftTileIndex].entropy == 0) {
       let leftTileType = this.tiles[leftTileIndex].type;
-      if (leftTileType == undefined) throw new Error("invalid tile type found");
+      if (leftTileType == undefined) {
+        let err = new Error("invalid tile type found");
+        err.cause = {
+          index,
+          direction: "left",
+          neighborIndex: leftTileIndex,
+          leftTileType,
+        };
+        throw err;
+      }
       leftTileAvailableTiles = [...this.rules[leftTileType].right];
     }
     if (rightTileIndex != -1 && this.tiles[rightTileIndex].entropy == 0) {
       let rightTileType = this.tiles[rightTileIndex].type;
-      if (rightTileType == undefined) throw new Error("invalid tile type found");
+      if (rightTileType == undefined) {
+        let err = new Error("invalid tile type found");
+        err.cause = {
+          index,
+          direction: "right",
+          neighborIndex: rightTileIndex,
+          rightTileType,
+        };
+        throw err;
+      }
       rightTileAvailableTiles = [...this.rules[rightTileType].left];
     }
 
@@ -446,10 +488,60 @@ export class WaveFunctionCollapsePlugIn implements Loadable<WFCMapData> {
     }
     const consolodatedArray = testArray.reduce((sum, arr) => sum.filter((x: any) => arr.includes(x)), testArray[0]);
 
-    if (consolodatedArray.length == 0) throw new Error("Broken Plot, no availble neighbor tiles");
+    if (consolodatedArray.length == 0) {
+      let err = new Error("Broken Plot, no availble neighbor tiles");
+      err.cause = {
+        index,
+        neighbors: {
+          up: {
+            index: upTileIndex,
+            avTiles: upTileAvailableTiles,
+          },
+          down: {
+            index,
+            downTileIndex,
+            avTiles: downTileAvailableTiles,
+          },
+          left: {
+            index: leftTileIndex,
+            avTiles: leftTileAvailableTiles,
+          },
+          right: {
+            index: rightTileIndex,
+            upTileAvailableTiles,
+          },
+        },
+      };
+      throw err;
+    }
 
     this.tiles[index].availableTiles = [...consolodatedArray];
-    if (this.tiles[index].availableTiles == undefined) throw new Error("Broken Plot, no availble neighbor tiles");
+    if (this.tiles[index].availableTiles == undefined) {
+      let err = new Error("Broken Plot, no availble neighbor tiles");
+      err.cause = {
+        index,
+        neighbors: {
+          up: {
+            index: upTileIndex,
+            avTiles: upTileAvailableTiles,
+          },
+          down: {
+            index,
+            downTileIndex,
+            avTiles: downTileAvailableTiles,
+          },
+          left: {
+            index: leftTileIndex,
+            avTiles: leftTileAvailableTiles,
+          },
+          right: {
+            index: rightTileIndex,
+            upTileAvailableTiles,
+          },
+        },
+      };
+      throw err;
+    }
     //@ts-ignore
     return this.tiles[index].availableTiles.length;
   }
